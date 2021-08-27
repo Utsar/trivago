@@ -33,8 +33,8 @@ UserSchema.pre("save", async function (next) {
   next()
 })
 
-UserSchema.statics.checkCredentials = async function (name, plainText) {
-  const user = await this.findOne({ name })
+UserSchema.statics.checkCredentials = async function (email, plainText) {
+  const user = await this.findOne({ email })
   if (user) {
     const hashedPassword = user.password
     const isMatch = await bcrypt.compare(plainText, hashedPassword)
@@ -46,8 +46,8 @@ UserSchema.statics.checkCredentials = async function (name, plainText) {
 }
 UserSchema.methods.toJSON = function () {
   const user = this
-  const { name, email, role } = user.toObject()
-  return { name, email, role }
+  const { name, email, role, _id } = user.toObject()
+  return { name, email, role, _id }
 }
 
-export const UserModel = mongoose.model("User", UserSchema)
+export default mongoose.model("User", UserSchema)

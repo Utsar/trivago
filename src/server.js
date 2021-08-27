@@ -2,6 +2,7 @@ import express from "express"
 import cors from "cors"
 import mongoose from "mongoose"
 import { errorsMiddleware } from "./errors/errorsMiddlewares.js"
+import usersRouter from "./services/user.js"
 
 const PORT = process.env.PORT
 const server = express()
@@ -11,7 +12,7 @@ server.use(express.json())
 server.use(cors())
 
 // ENDPOINTS
-// server.use("/users")
+server.use("/users", usersRouter)
 // server.use("/accommodation")
 
 // ERROR MIDDLEWARES
