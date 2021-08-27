@@ -7,10 +7,10 @@ const reqString = {
   required: true,
 };
 
-const accomodationSchema = new Schema({
+const accommodationSchema = new Schema({
   name: reqString,
   host: { type: Schema.Types.ObjectId, required: true, ref: 'User' },
-  descrption: reqString,
+  description: reqString,
   maxGuests: {
     type: Number,
     required: true,
@@ -18,4 +18,4 @@ const accomodationSchema = new Schema({
   city: reqString,
 });
 
-export default model('Accomodation', accomodationSchema);
+export default model('Accommodation', accommodationSchema);
