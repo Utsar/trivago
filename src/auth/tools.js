@@ -47,12 +47,12 @@ export const refreshTokens = async currentRefreshToken => {
   try {
     const decoded = await verifyRefreshJWT(currentRefreshToken)
     const user = await UserModel.findById(decoded._id)
-    if (!user) throw new Error("User not found")
-    if (currentRefreshToken !== user.refreshToken) throw new Error("Token not valid!")
+    if (!user) return null
+    if (currentRefreshToken !== user.refreshToken) return null
     const { accessToken, refreshToken } = await getTokens(user)
     return { accessToken, refreshToken }
   } catch (error) {
-    throw new Error("Token not valid!")
+    return null
   }
 }
 

@@ -36,10 +36,11 @@ UsersRouter.post("/refreshTokens", async (req, res, next) => {
   const currentRefreshToken = req.body.refreshToken
   if (!currentRefreshToken) return next(createError(404, "Refresh Token must be provided in body: {refreshToken: <token>}"))
   try {
-    const { accessToken, refreshToken } = await refreshTokens(currentRefreshToken)
-    res.send({ accessToken, refreshToken })
+    const tokens = await refreshTokens(currentRefreshToken)
+    if (!tokens) return next(createError(401, "Invalid token"))
+    res.send({ accessToken: tokens.accessToken, refreshToken: tokens.refreshToken })
   } catch (error) {
-    next(error)
+    next(createError(500, error))
   }
 })
 
