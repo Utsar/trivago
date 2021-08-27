@@ -1,6 +1,6 @@
 import express from "express"
 import UserModel from "../models/user.js"
-import { JWTAuthMiddleware } from "../auth/middlewares.js"
+import { JWTAuthMiddleware, hostsOnly } from "../auth/middlewares.js"
 import { getJWT } from "../auth/tools.js"
 import createError from "http-errors"
 
@@ -40,21 +40,15 @@ UsersRouter.get("/me", JWTAuthMiddleware, async (req, res, next) => {
   }
 })
 
-UsersRouter.get(
-  "/me/accommodation",
-  JWTAuthMiddleware,
-  //hostOnly,
-  async (req, res, next) => {
-    try {
-      const accommodations = await AccommodationModel.find({
-        host: req.user._id,
-      })
-      //.populate("host")
-      res.send(accommodations)
-    } catch (error) {
-      next(createError(500, error))
-    }
+UsersRouter.get("/me/accommodation", JWTAuthMiddleware, hostsOnly, async (req, res, next) => {
+  try {
+    const accommodations = await AccommodationModel.find({
+      host: req.user._id,
+    }).populate("host")
+    res.send(accommodations)
+  } catch (error) {
+    next(createError(500, error))
   }
-)
+})
 
 export default UsersRouter

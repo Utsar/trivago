@@ -1,41 +1,34 @@
-import express from 'express';
-import { JWTAuthMiddleware } from '../auth/middlewares';
-import Accommodation from '../models/accommodation';
+import express from "express"
+import createError from "http-errors"
+import { hostsOnly, isOwner, JWTAuthMiddleware } from "../auth/middlewares.js"
+import Accommodation from "../models/accommodation.js"
 
-const router = express.Router();
+const router = express.Router()
 
 // GET /accommodation
-router.get('/accommodation', async (req, res) => {
+router.get("/", JWTAuthMiddleware, async (req, res, next) => {
   try {
-    const allAccommodation = await Accommodation.find();
-    return allAccommodation;
+    const allAccommodation = await Accommodation.find()
+    res.send(allAccommodation)
   } catch (error) {
-    res.status(400).send('Server error');
+    next(createError(500, error))
   }
-});
+})
 //GET /accommodation/:id
-router.get('/accommodation/:id', async (req, res) => {
+router.get("/:id", JWTAuthMiddleware, async (req, res, next) => {
   try {
-    const allAccommodationById = await Accommodation.findById(req.params.id);
-    return allAccommodationById;
+    const accommodation = await Accommodation.findById(req.params.id)
+    if (!accommodation) return next(createError(404, `Accommodation with id ${req.params.id} not found.`))
+    res.send(accommodation)
   } catch (error) {
-    res.status(400).send('Server error');
+    next(createError(500, error))
   }
-});
+})
 //// HOST ONLY
 
-//GET /user/me/accommodation
-router.get('/me/accommodation', async (req, res) => {
-  try {
-    const allAccommodationById = await Accommodation.findById(req.params.id);
-    return allAccommodationById;
-  } catch (error) {
-    res.status(400).send('Server error');
-  }
-});
 //POST /accommodation
-router.post('/accommodation', async (req, res) => {
-  const { name, description, maxGuests, city } = req.body;
+router.post("/", JWTAuthMiddleware, hostsOnly, async (req, res, next) => {
+  const { name, description, maxGuests, city } = req.body
   try {
     const accommodation = new Accommodation({
       name,
@@ -43,51 +36,41 @@ router.post('/accommodation', async (req, res) => {
       maxGuests,
       city,
       host: req.user.id,
-    });
-    const newAccommodation = await accommodation.save();
-    res.send(newAccommodation);
+    })
+    const newAccommodation = await accommodation.save()
+    res.status(201).send(newAccommodation)
   } catch (error) {
-    res.status(500).send('Server Error');
+    next(createError(400, error))
   }
-});
-// PUT /accommodation/:id
-router.put('/accommodation/:id', async (req, res) => {
-  const { name, description, maxGuests, city } = req.body;
-  const editAccommodation = {};
-  if (name) editAccommodation.name = name;
-  if (description) editAccommodation.description = description;
-  if (maxGuests) editAccommodation.maxGuests = maxGuests;
-  if (city) editAccommodation.city = city;
-  try {
-    let accommodation = await Accommodation.findById(req.params.id);
-    if (!accommodation) return res.status(400).json({ message: 'Not Found' });
-    if (accommodation.host.toString() !== req.user.id)
-      return res.status(401).json({ message: 'Not authorized' });
+})
 
-    accommodation = await Accommodation.findByIdAndUpdate(
-      req.params.id,
-      { $set: editAccommodation },
-      { new: true }
-    );
-    res.json(accommodation);
+// PUT /accommodation/:id
+router.put("/:id", JWTAuthMiddleware, hostsOnly, isOwner, async (req, res) => {
+  const { name, description, maxGuests, city } = req.body
+  const accommodation = req.accommodation
+  // Ask if there is a better way to perform the checks below
+  if (name) accommodation.name = name
+  if (description) accommodation.description = description
+  if (maxGuests) accommodation.maxGuests = maxGuests
+  if (city) accommodation.city = city
+  try {
+    await accommodation.save()
+    res.json(accommodation)
   } catch (error) {
-    res.status(500).send('Server Error');
+    next(createError(400, error))
   }
-});
+})
+
 // DELETE /accommodation/:id
 
-router.delete('/accommodation/:id', async (req, res) => {
+router.delete("/:id", JWTAuthMiddleware, hostsOnly, isOwner, async (req, res) => {
   try {
-    let accommodation = Accommodation.findById(req.params.id);
-    if (!accommodation)
-      return res.status(400).json({ message: 'Accommodation not found' });
-    if (accommodation.host.toString() !== req.user.id)
-      return res.status(401).json({ message: 'Not authorized' });
-
-    await Accommodation.findByIdAndRemove(req.params.id);
-    res.json({ message: 'Deleted' });
+    // Ask if there is something like document.delete()
+    // Difference between findByIdAndRemove and findByIdAndDelete()
+    await Accommodation.findByIdAndRemove(req.params.id)
+    res.json({ message: "Deleted" })
   } catch (error) {
-    res.status(500).send('Server Error');
+    next(createError(500, error))
   }
-});
-export default router;
+})
+export default router

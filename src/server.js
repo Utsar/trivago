@@ -3,6 +3,7 @@ import cors from "cors"
 import mongoose from "mongoose"
 import { errorsMiddleware } from "./errors/errorsMiddlewares.js"
 import usersRouter from "./services/user.js"
+import accommodationsRouter from "./services/accommodation.js"
 
 const PORT = process.env.PORT
 const server = express()
@@ -13,7 +14,7 @@ server.use(cors())
 
 // ENDPOINTS
 server.use("/users", usersRouter)
-// server.use("/accommodation")
+server.use("/accommodation", accommodationsRouter)
 
 // ERROR MIDDLEWARES
 server.use(errorsMiddleware)
