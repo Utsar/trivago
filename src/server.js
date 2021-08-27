@@ -12,7 +12,7 @@ server.use(cors())
 
 // ENDPOINTS
 // server.use("/users")
-// server.use("/accomodation")
+// server.use("/accommodation")
 
 // ERROR MIDDLEWARES
 server.use(errorsMiddleware)
