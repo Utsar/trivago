@@ -20,6 +20,7 @@ const UserSchema = new mongoose.Schema({
     required: true,
     enum: ["host", "guest"],
   },
+  refreshToken: String,
 })
 
 UserSchema.pre("save", async function (next) {

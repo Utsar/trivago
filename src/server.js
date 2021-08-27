@@ -19,6 +19,7 @@ server.use("/accommodation", accommodationsRouter)
 // ERROR MIDDLEWARES
 server.use(errorsMiddleware)
 
+mongoose.set("returnOriginal", false)
 mongoose
   .connect(process.env.MONGO_STRING, {
     useNewUrlParser: true,

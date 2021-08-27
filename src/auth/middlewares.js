@@ -24,11 +24,3 @@ export const hostsOnly = async (req, res, next) => {
   if (user.role === "host") next()
   else next(createError(403, "Access to hosts only"))
 }
-
-export const isOwner = async (req, res, next) => {
-  const accommodation = await AccommodationModel.findById(req.params.id)
-  if (!accommodation) return next(createError(400, `Accommodation with id ${req.params.id} not Found`))
-  if (accommodation.host.toString() !== req.user.id) return next(createError(403, `No access to this accommodation`))
-  req.accommodation = accommodation
-  next()
-}
