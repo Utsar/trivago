@@ -1,14 +1,14 @@
 import express from "express"
 import createError from "http-errors"
-import { hostsOnly, isOwner, JWTAuthMiddleware } from "../auth/middlewares.js"
-import Accommodation from "../models/accommodation.js"
+import { hostsOnly, JWTAuthMiddleware } from "../auth/middlewares.js"
+import AccommodationModel from "../models/accommodation.js"
 
 const router = express.Router()
 
 // GET /accommodation
 router.get("/", JWTAuthMiddleware, async (req, res, next) => {
   try {
-    const allAccommodation = await Accommodation.find()
+    const allAccommodation = await AccommodationModel.find()
     res.send(allAccommodation)
   } catch (error) {
     next(createError(500, error))
@@ -17,20 +17,20 @@ router.get("/", JWTAuthMiddleware, async (req, res, next) => {
 //GET /accommodation/:id
 router.get("/:id", JWTAuthMiddleware, async (req, res, next) => {
   try {
-    const accommodation = await Accommodation.findById(req.params.id)
+    const accommodation = await AccommodationModel.findById(req.params.id)
     if (!accommodation) return next(createError(404, `Accommodation with id ${req.params.id} not found.`))
     res.send(accommodation)
   } catch (error) {
     next(createError(500, error))
   }
 })
-//// HOST ONLY
 
+//// HOST ONLY
 //POST /accommodation
 router.post("/", JWTAuthMiddleware, hostsOnly, async (req, res, next) => {
   const { name, description, maxGuests, city } = req.body
   try {
-    const accommodation = new Accommodation({
+    const accommodation = new AccommodationModel({
       name,
       description,
       maxGuests,
@@ -45,16 +45,10 @@ router.post("/", JWTAuthMiddleware, hostsOnly, async (req, res, next) => {
 })
 
 // PUT /accommodation/:id
-router.put("/:id", JWTAuthMiddleware, hostsOnly, isOwner, async (req, res) => {
-  const { name, description, maxGuests, city } = req.body
-  const accommodation = req.accommodation
-  // Ask if there is a better way to perform the checks below
-  if (name) accommodation.name = name
-  if (description) accommodation.description = description
-  if (maxGuests) accommodation.maxGuests = maxGuests
-  if (city) accommodation.city = city
+router.put("/:id", JWTAuthMiddleware, hostsOnly, async (req, res, next) => {
   try {
-    await accommodation.save()
+    const accommodation = await AccommodationModel.findOneAndUpdate({ _id: req.params.id, host: req.user.id }, req.body)
+    if (!accommodation) return next(createError(404, "Accommodation not found"))
     res.json(accommodation)
   } catch (error) {
     next(createError(400, error))
@@ -63,14 +57,14 @@ router.put("/:id", JWTAuthMiddleware, hostsOnly, isOwner, async (req, res) => {
 
 // DELETE /accommodation/:id
 
-router.delete("/:id", JWTAuthMiddleware, hostsOnly, isOwner, async (req, res) => {
+router.delete("/:id", JWTAuthMiddleware, hostsOnly, async (req, res, next) => {
   try {
-    // Ask if there is something like document.delete()
-    // Difference between findByIdAndRemove and findByIdAndDelete()
-    await Accommodation.findByIdAndRemove(req.params.id)
+    const accommodation = await AccommodationModel.findOneAndDelete({ _id: req.params.id, host: req.user.id })
+    if (!accommodation) return next(createError(404, "Accommodation not found"))
     res.json({ message: "Deleted" })
   } catch (error) {
     next(createError(500, error))
   }
 })
+
 export default router

@@ -13,13 +13,15 @@ const UserSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true,
   },
+  facebookId: String,
+  googleId: String,
   role: {
     type: String,
     required: true,
     enum: ["host", "guest"],
   },
+  refreshToken: String,
 })
 
 UserSchema.pre("save", async function (next) {

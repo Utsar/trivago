@@ -1,8 +1,9 @@
 import express from "express"
 import UserModel from "../models/user.js"
 import { JWTAuthMiddleware, hostsOnly } from "../auth/middlewares.js"
-import { getJWT } from "../auth/tools.js"
+import { getTokens, refreshTokens } from "../auth/tools.js"
 import createError from "http-errors"
+import passport from "passport"
 
 const UsersRouter = express.Router()
 
@@ -10,8 +11,8 @@ UsersRouter.post("/register", async (req, res, next) => {
   try {
     const newUser = new UserModel(req.body)
     const savedUser = await newUser.save()
-    const token = await getJWT(savedUser)
-    res.status(201).send({ token, user: savedUser })
+    const { accessToken, refreshToken } = await getTokens(savedUser)
+    res.status(201).send({ accessToken, refreshToken, user: savedUser })
   } catch (error) {
     next(createError(400, error))
   }
@@ -22,11 +23,23 @@ UsersRouter.post("/login", async (req, res, next) => {
     const { email, password } = req.body
     const user = await UserModel.checkCredentials(email, password)
     if (user) {
-      const accessToken = await getJWT(user)
-      res.send({ accessToken })
+      const { accessToken, refreshToken } = await getTokens(user)
+      res.send({ accessToken, refreshToken })
     } else {
       next(createError(401, "Invalid Credentials"))
     }
+  } catch (error) {
+    next(createError(500, error))
+  }
+})
+
+UsersRouter.post("/refreshTokens", async (req, res, next) => {
+  const currentRefreshToken = req.body.refreshToken
+  if (!currentRefreshToken) return next(createError(404, "Refresh Token must be provided in body: {refreshToken: <token>}"))
+  try {
+    const tokens = await refreshTokens(currentRefreshToken)
+    if (!tokens) return next(createError(401, "Invalid token"))
+    res.send({ accessToken: tokens.accessToken, refreshToken: tokens.refreshToken })
   } catch (error) {
     next(createError(500, error))
   }
@@ -48,6 +61,16 @@ UsersRouter.get("/me/accommodation", JWTAuthMiddleware, hostsOnly, async (req, r
     res.send(accommodations)
   } catch (error) {
     next(createError(500, error))
+  }
+})
+
+UsersRouter.get("/googleLogin", passport.authenticate("google", { scope: ["email", "profile"] }))
+
+UsersRouter.get("/googleRedirect", passport.authenticate("google"), async (req, res, next) => {
+  try {
+    res.redirect(`http://localhost:3000?accessToken=${req.user.tokens.accessToken}&refreshToken=${req.user.tokens.refreshToken}`)
+  } catch (error) {
+    next(error)
   }
 })
 
