@@ -12,6 +12,12 @@ UsersRouter.post("/register", async (req, res, next) => {
     const newUser = new UserModel(req.body)
     const savedUser = await newUser.save()
     const { accessToken, refreshToken } = await getTokens(savedUser)
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production" ? true : false,
+      sameSite: "none",
+    })
+    res.cookie("refreshToken", refreshToken, { httpOnly: true })
     res.status(201).send({ accessToken, refreshToken, user: savedUser })
   } catch (error) {
     next(createError(400, error))
@@ -24,7 +30,13 @@ UsersRouter.post("/login", async (req, res, next) => {
     const user = await UserModel.checkCredentials(email, password)
     if (user) {
       const { accessToken, refreshToken } = await getTokens(user)
-      res.send({ accessToken, refreshToken })
+      res.cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production" ? true : false,
+        sameSite: "none",
+      })
+      res.cookie("refreshToken", refreshToken, { httpOnly: true })
+      res.status(204).send()
     } else {
       next(createError(401, "Invalid Credentials"))
     }
@@ -39,7 +51,13 @@ UsersRouter.post("/refreshTokens", async (req, res, next) => {
   try {
     const tokens = await refreshTokens(currentRefreshToken)
     if (!tokens) return next(createError(401, "Invalid token"))
-    res.send({ accessToken: tokens.accessToken, refreshToken: tokens.refreshToken })
+    res.cookie("accessToken", tokens.accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production" ? true : false,
+      sameSite: "none",
+    })
+    res.cookie("refreshToken", tokens.refreshToken, { httpOnly: true })
+    res.status(204).send()
   } catch (error) {
     next(createError(500, error))
   }
@@ -68,7 +86,13 @@ UsersRouter.get("/googleLogin", passport.authenticate("google", { scope: ["email
 
 UsersRouter.get("/googleRedirect", passport.authenticate("google"), async (req, res, next) => {
   try {
-    res.redirect(`http://localhost:3000?accessToken=${req.user.tokens.accessToken}&refreshToken=${req.user.tokens.refreshToken}`)
+    res.cookie("accessToken", req.user.tokens.accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production" ? true : false,
+      sameSite: "none",
+    })
+    res.cookie("refreshToken", req.user.tokens.refreshToken, { httpOnly: true })
+    res.redirect(`http://localhost:3001/users/me`)
   } catch (error) {
     next(error)
   }

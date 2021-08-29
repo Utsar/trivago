@@ -3,10 +3,9 @@ import UserModel from "../models/user.js"
 import { verifyJWT } from "./tools.js"
 
 export const JWTAuthMiddleware = async (req, res, next) => {
-  if (!req.headers.authorization) return next(createError(401, "Please provide credentials in the authorization header."))
+  if (!req.cookies.accessToken) return next(createError(401, "Please provide credentials in cookies."))
 
-  const token = req.headers.authorization.replace("Bearer ", "")
-
+  const token = req.cookies.accessToken
   try {
     const decodedToken = await verifyJWT(token)
     const user = await UserModel.findById(decodedToken._id)
