@@ -1,6 +1,5 @@
 import createError from "http-errors"
 import UserModel from "../models/user.js"
-import AccommodationModel from "../models/accommodation.js"
 import { verifyJWT } from "./tools.js"
 
 export const JWTAuthMiddleware = async (req, res, next) => {

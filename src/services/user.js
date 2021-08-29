@@ -3,6 +3,7 @@ import UserModel from "../models/user.js"
 import { JWTAuthMiddleware, hostsOnly } from "../auth/middlewares.js"
 import { getTokens, refreshTokens } from "../auth/tools.js"
 import createError from "http-errors"
+import passport from "passport"
 
 const UsersRouter = express.Router()
 
@@ -60,6 +61,16 @@ UsersRouter.get("/me/accommodation", JWTAuthMiddleware, hostsOnly, async (req, r
     res.send(accommodations)
   } catch (error) {
     next(createError(500, error))
+  }
+})
+
+UsersRouter.get("/googleLogin", passport.authenticate("google", { scope: ["email", "profile"] }))
+
+UsersRouter.get("/googleRedirect", passport.authenticate("google"), async (req, res, next) => {
+  try {
+    res.redirect(`http://localhost:3000?accessToken=${req.user.tokens.accessToken}&refreshToken=${req.user.tokens.refreshToken}`)
+  } catch (error) {
+    next(error)
   }
 })
 
