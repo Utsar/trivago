@@ -20,9 +20,6 @@ server.use("/accommodation", accommodationsRouter)
 server.use(errorsMiddleware)
 
 mongoose
-  .connect(process.env.MONGO_STRING, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(process.env.MONGO_STRING)
   .then(() => server.listen(PORT, () => console.log("Server running on port " + PORT)))
   .catch(err => console.log(err.message))
