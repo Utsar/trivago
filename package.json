@@ -1,7 +1,6 @@
 {
   "name": "trivago",
   "version": "1.0.0",
-  "description": "",
   "main": "index.js",
   "type": "module",
   "scripts": {
@@ -22,5 +21,14 @@
     "http-errors": "^1.8.0",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^6.0.2"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Utsar/trivago.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Utsar/trivago/issues"
+  },
+  "homepage": "https://github.com/Utsar/trivago#readme",
+  "description": ""
 }
