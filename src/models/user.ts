@@ -1,7 +1,14 @@
 import mongoose from "mongoose"
 import bcrypt from "bcrypt"
+import { User } from "../types"
 
-const UserSchema = new mongoose.Schema({
+const { Schema, model } = mongoose
+
+export interface UserDocument extends Document, User {}
+export interface UserMod extends Model<UserDocument> {
+  checkCredentials(email: string, password: string): Promise<UserDocument | null>
+}
+const UserSchema = new Schema<UserDocument>({
   name: {
     type: String,
     required: true,
@@ -49,5 +56,5 @@ UserSchema.methods.toJSON = function () {
   const { name, email, role, _id } = user.toObject()
   return { name, email, role, _id }
 }
+export default model<UserDocument, UserMod>("User", UserSchema)
 
-export default mongoose.model("User", UserSchema)
