@@ -1,9 +1,9 @@
 import express from "express"
 import cors from "cors"
 import mongoose from "mongoose"
-import { errorsMiddleware } from "./errors/errorsMiddlewares.js"
-import usersRouter from "./services/user.js"
-import accommodationsRouter from "./services/accommodation.js"
+import { errorsMiddleware } from "./errors/errorsMiddlewares"
+import usersRouter from "./services/user"
+import accommodationsRouter from "./services/accommodation"
 
 const PORT = process.env.PORT
 const server = express()
